@@ -1,5 +1,4 @@
 /* 
-##################################################################
 ############################ TODO ################################
 	- use standard C functions to do directory/file manipulation #
 ##################################################################
@@ -11,8 +10,18 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define DBPATH "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin/tpkg_DB"
+
+// path to usr/bin directory, for installing the downloaded binaries
+// set this to a non-important directory (such as "~/path/to/usr/bin)
+// so if tpkg malfunctions it won't destroy your system's /usr/bin
 #define USRBIN "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin"
+
+// path to package manager database. The tpkg_DB directory should
+// be created in the USRBIN directory before you run tpkg.
+#define DBPATH "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin/tpkg_DB"
+
+// URL of the remote server. A server running on localhost:port is
+// needed for testing the download functions of tpkg
 #define URL "127.0.0.1:8080"
 
 struct {
