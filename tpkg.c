@@ -1,20 +1,23 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <string.h>
+/* 
+##################################################################
+############################ TODO ################################
+	- use standard C functions to do directory/file manipulation #
+##################################################################
+*/
 
-#define DBPATH "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin/tpkg_DB/"
-#define USRBIN "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin/"
-#define URL "127.0.0.1:8080/"
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/stat.h>
+
+#define DBPATH "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin/tpkg_DB"
+#define USRBIN "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin"
+#define URL "127.0.0.1:8080"
 
 struct {
 	int ins, rm;
 }opt;
-
-enum touchErr {
-	mkdir_success,
-	mkdir_fail
-};
 
 enum wgetErr {
 	wget_OK, wget_generic_err, wget_parse_err,
@@ -65,27 +68,19 @@ int main(int argc, char ** argv)
 		for(int i=0; i<listTop; i++) {
 			// skip if package exists
 			char cmd[256] = "mkdir ";
-			strcat(cmd, DBPATH);
-			strcat(cmd, pkgList[i]);
-			strcat(cmd, " &> /dev/null");
+			sprintf(cmd, "mkdir %s/%s &> /dev/null", DBPATH, pkgList[i]);
 			int stat = system(cmd);
 			if(WEXITSTATUS(stat) == 1) {
 				printf("skipping \"%s\" ...\n", pkgList[i]);
 				continue;
 			}
 			printf("Downloading Package: %s\n", pkgList[i]);
-			strcpy(cmd, "wget -P ");
-			strcat(cmd, USRBIN);
-			strcat(cmd, " ");
-			strcat(cmd, URL);
-			strcat(cmd, pkgList[i]);
-			strcat(cmd, " > /dev/null");
+			sprintf(cmd, "wget -P %s %s/%s &> /dev/null", USRBIN, URL, pkgList[i]);
 			stat = system(cmd);
 			if(WEXITSTATUS(stat) == wget_OK) {
 				printf("  Done\n");
 			} else if (WEXITSTATUS(stat) == wget_server_err) {
-				printf("  wget server side error. Does the package exist?\n");
-				printf("\npackage downloading failed, aborting...\n");
+				printf("wget server side error. Does \"%s\" exist?\n", pkgList[i]);
 				goto cleanup;
 			} else {
 				printf("\nwget unknown error, aborting...\n");
@@ -94,16 +89,23 @@ int main(int argc, char ** argv)
 			continue;	// good exit
 
 			cleanup:	// package failed, remove directory
-			strcpy(cmd, "rmdir ");
-			strcat(cmd, DBPATH);
-			strcat(cmd, pkgList[i]);
+			sprintf(cmd, "rmdir %s/%s", DBPATH, pkgList[i]);
 			system(cmd);
 		}
 	}
 
 	if(opt.rm) {
 		for(int i=0; i<listTop; i++) {
-
+			int stat = 0;
+			char cmd[256];
+			sprintf(cmd, "rmdir %s/%s &> /dev/null", DBPATH, pkgList[i]);
+			stat = WEXITSTATUS(system(cmd));
+			if(stat == 1) {
+				fprintf(stderr, "package \"%s\" is not installed...\n", pkgList[i]);
+				continue;
+			}
+			sprintf(cmd, "rm %s/%s &> /dev/null", USRBIN, pkgList[i]);
+			system(cmd);
 		}
 	}
 	return 0;
