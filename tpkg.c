@@ -10,15 +10,7 @@
 #include <string.h>
 #include <sys/stat.h>
 
-
-// path to usr/bin directory, for installing the downloaded binaries
-// set this to a non-important directory (such as "~/path/to/usr/bin)
-// so if tpkg malfunctions it won't destroy your system's /usr/bin
-#define USRBIN "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin"
-
-// path to package manager database. The tpkg_DB directory should
-// be created in the USRBIN directory before you run tpkg.
-#define DBPATH "/home/richard/Pro/LinuxStuff/tpkg/root/usr/bin/tpkg_DB"
+#define ROOT "/home/richard/Pro/LinuxStuff/tpkg/root"
 
 // URL of the remote server. A server running on localhost:port is
 // needed for testing the download functions of tpkg
@@ -42,8 +34,22 @@ char* pkgList[32];
 
 int main(int argc, char ** argv)
 {
-	if(argc == 1)
+	if(argc == 1) {
+		disp_usage();
 		return 0;	// exit if no options provided
+	}
+	if(getuid() != 0) {	// not running as root, exit
+		fprintf(stderr, "tpkg must run as root!\n");
+		return 0;
+	}
+	
+	chdir(ROOT);	// set current directory to ROOT
+
+	if(access("usr/bin/tpkg_DB", F_OK) != 0)
+	{
+		fprintf(stderr, "error: tpkg_DB does not exist!\n");
+		return 0;
+	}
 
 	char c;
 	while ((c = getopt(argc, argv, optString)) != -1)
@@ -76,17 +82,20 @@ int main(int argc, char ** argv)
 	if(opt.ins) {
 		for(int i=0; i<listTop; i++) {
 			// skip if package exists
-			char cmd[256] = "mkdir ";
-			sprintf(cmd, "mkdir %s/%s &> /dev/null", DBPATH, pkgList[i]);
+			char cmd[256];
+			sprintf(cmd, "mkdir usr/bin/tpkg_DB/%s &> /dev/null", pkgList[i]);
 			int stat = system(cmd);
 			if(WEXITSTATUS(stat) == 1) {
 				printf("skipping \"%s\" ...\n", pkgList[i]);
 				continue;
 			}
 			printf("Downloading Package: %s\n", pkgList[i]);
-			sprintf(cmd, "wget -P %s %s/%s &> /dev/null", USRBIN, URL, pkgList[i]);
+			sprintf(cmd, "wget -P usr/bin %s/%s &> /dev/null", URL, pkgList[i]);
 			stat = system(cmd);
 			if(WEXITSTATUS(stat) == wget_OK) {
+				// modify file permission
+				sprintf(cmd, "chmod 755 usr/bin/%s", pkgList[i]);
+				system(cmd);
 				printf("  Done\n");
 			} else if (WEXITSTATUS(stat) == wget_server_err) {
 				printf("wget server side error. Does \"%s\" exist?\n", pkgList[i]);
@@ -98,7 +107,7 @@ int main(int argc, char ** argv)
 			continue;	// good exit
 
 			cleanup:	// package failed, remove directory
-			sprintf(cmd, "rmdir %s/%s", DBPATH, pkgList[i]);
+			sprintf(cmd, "rmdir usr/bin/tpkg_DB/%s", pkgList[i]);
 			system(cmd);
 		}
 	}
@@ -107,13 +116,13 @@ int main(int argc, char ** argv)
 		for(int i=0; i<listTop; i++) {
 			int stat = 0;
 			char cmd[256];
-			sprintf(cmd, "rmdir %s/%s &> /dev/null", DBPATH, pkgList[i]);
+			sprintf(cmd, "rmdir usr/bin/tpkg_DB/%s &> /dev/null", pkgList[i]);
 			stat = WEXITSTATUS(system(cmd));
 			if(stat == 1) {
 				fprintf(stderr, "package \"%s\" is not installed...\n", pkgList[i]);
 				continue;
 			}
-			sprintf(cmd, "rm %s/%s &> /dev/null", USRBIN, pkgList[i]);
+			sprintf(cmd, "rm usr/bin/%s &> /dev/null", pkgList[i]);
 			system(cmd);
 		}
 	}
