@@ -4,8 +4,8 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#define ROOT "/home/richard/Pro/LinuxStuff/tpkg/root"
-#define URL "127.0.0.1:8080"
+#define ROOT "/path/to/root"
+#define URL "https://raw.githubusercontent.com/Unturned3/unturned3.github.io/master/repo"
 
 struct {
 	int ins, rm;
@@ -35,8 +35,12 @@ int main(int argc, char ** argv)
 		fprintf(stderr, "tpkg must run as root!\n");
 		return 0;
 	}
-	
-	chdir(ROOT);	// set working directory to ROOT
+
+	// change the working directory to ROOT
+	if(chdir(ROOT) == -1) {
+		fprintf(stderr, "cannot set working directory. Does ROOT exist?\n");
+		return 0;
+	}
 
 	// create usr/bin/tpkg_DB if it doesn't exist
 	if(access("usr/bin/tpkg_DB", F_OK) != 0) {
