@@ -1,3 +1,0 @@
-# name	ver			path	deps	depList
-foo		20180821	/foo	0
-bar		20180821	/bar	1		foo
