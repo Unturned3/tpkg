@@ -1,9 +1,0 @@
-
-tpkg design
-===========
-
-# use the Linux filesystem and http requests to manage packages
-# use directory structure & mkdir, touch, etc. as the installation database
-# use wget to download packages. If returned 404 it means that the package is not found
-# packages in the remote repo has a <pkg_name>.dep file, representing it's dependencies
-	# packages that doesn't have dependenceis can omit the .dep file
