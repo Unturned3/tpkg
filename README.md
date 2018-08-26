@@ -32,3 +32,7 @@ Online package repository URL: https://raw.githubusercontent.com/Unturned3/untur
 Currently, four packages are availabe, and they are named "a", "b", "c", and "d".
 These are just simple shell scripts that prints text to the terminal.
 More packages will be added later, once tpkg becomes usable.
+
+### TODO
+1. replace system() calls with standard "file system interface" functions
+2. add dependency checking mechanism
