@@ -4,6 +4,9 @@ tpkg: tiny package manager for MicroLinux
 **WARNING**: tpkg is *highly experimental*, and it might cause
              damage to your system/data. Use at your own risk.
 
+Online package repository URL: https://unturned3.github.io/repo
+
+
 ### How to Install:
 
 1. Run "mkdir -p /path/to/root/usr/bin/tpkg_DB".
