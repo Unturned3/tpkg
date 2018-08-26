@@ -1,9 +1,3 @@
-/* 
-############################ TODO ################################
-	- use standard C functions to do directory/file manipulation #
-##################################################################
-*/
-
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -11,9 +5,6 @@
 #include <sys/stat.h>
 
 #define ROOT "/home/richard/Pro/LinuxStuff/tpkg/root"
-
-// URL of the remote server. A server running on localhost:port is
-// needed for testing the download functions of tpkg
 #define URL "127.0.0.1:8080"
 
 struct {
@@ -38,19 +29,23 @@ int main(int argc, char ** argv)
 		disp_usage();
 		return 0;	// exit if no options provided
 	}
-	if(getuid() != 0) {	// not running as root, exit
+
+	// is tpkg running as root?
+	if(getuid() != 0) {
 		fprintf(stderr, "tpkg must run as root!\n");
 		return 0;
 	}
 	
-	chdir(ROOT);	// set current directory to ROOT
+	chdir(ROOT);	// set working directory to ROOT
 
-	if(access("usr/bin/tpkg_DB", F_OK) != 0)
-	{
-		fprintf(stderr, "error: tpkg_DB does not exist!\n");
-		return 0;
+	// create usr/bin/tpkg_DB if it doesn't exist
+	if(access("usr/bin/tpkg_DB", F_OK) != 0) {
+		fprintf(stderr, "warning: /ROOT/usr/bin/tpkg_DB does not exist! Creating a new one...\n");
+		system("mkdir -p usr/bin/tpkg_DB");
+		system("chmod 755 usr/bin/tpkg_DB");
 	}
 
+	// use getopt() to parse command line options
 	char c;
 	while ((c = getopt(argc, argv, optString)) != -1)
 		switch (c) {
@@ -68,6 +63,7 @@ int main(int argc, char ** argv)
 		return 0;
 	}
 	
+	// read the list of package names provided
 	if(opt.ins || opt.rm) {
 		for(int i=optind; i<argc; i++) {
 			pkgList[listTop] = argv[i];
@@ -78,17 +74,20 @@ int main(int argc, char ** argv)
 			return 0;
 		}
 	}
-
+	
+	// install the requested packages
 	if(opt.ins) {
 		for(int i=0; i<listTop; i++) {
-			// skip if package exists
 			char cmd[256];
 			sprintf(cmd, "mkdir usr/bin/tpkg_DB/%s &> /dev/null", pkgList[i]);
 			int stat = system(cmd);
+
+			// skip to next package if current package is already installed
 			if(WEXITSTATUS(stat) == 1) {
 				printf("skipping \"%s\" ...\n", pkgList[i]);
 				continue;
 			}
+
 			printf("Downloading Package: %s\n", pkgList[i]);
 			sprintf(cmd, "wget -P usr/bin %s/%s &> /dev/null", URL, pkgList[i]);
 			stat = system(cmd);
@@ -98,20 +97,22 @@ int main(int argc, char ** argv)
 				system(cmd);
 				printf("  Done\n");
 			} else if (WEXITSTATUS(stat) == wget_server_err) {
+				// server returned error, such as 404, etc.
 				printf("wget server side error. Does \"%s\" exist?\n", pkgList[i]);
 				goto cleanup;
 			} else {
 				printf("\nwget unknown error, aborting...\n");
 				goto cleanup;
 			}
-			continue;	// good exit
+			continue;	// normal exit
 
-			cleanup:	// package failed, remove directory
+			cleanup:	// fetching failed, remove the corresponding tpkg_DB entry
 			sprintf(cmd, "rmdir usr/bin/tpkg_DB/%s", pkgList[i]);
 			system(cmd);
 		}
 	}
 
+	// remove the requested packages
 	if(opt.rm) {
 		for(int i=0; i<listTop; i++) {
 			int stat = 0;
