@@ -34,5 +34,6 @@ These are just simple shell scripts that prints text to the terminal.
 More packages will be added later, once tpkg becomes usable.
 
 ### TODO
-1. replace system() calls with standard "file system interface" functions
-2. add dependency checking mechanism
+1. test for any bugs in the dependency management system
+2. add code to check if any other packages requires the package being removed
+3. maybe replace system() calls with library functions
