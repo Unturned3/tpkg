@@ -5,8 +5,8 @@
 #include <sys/stat.h>
 
 #define ROOT "/home/richard/root"
-// #define URL "https://raw.githubusercontent.com/Unturned3/unturned3.github.io/master/repo"
-#define URL "127.0.0.1:8080"
+#define URL "https://raw.githubusercontent.com/Unturned3/unturned3.github.io/master/repo"
+// #define URL "127.0.0.1:8080"
 
 struct {
 	int ins, rm;
