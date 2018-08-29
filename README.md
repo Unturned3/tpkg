@@ -37,3 +37,5 @@ More packages will be added later, once tpkg becomes usable.
 1. test for any bugs in the dependency management system
 2. add code to check if any other packages requires the package being removed
 3. maybe replace system() calls with library functions
+4. add a package formatting & installation system
+5. add a hashsum verification system (ensures package integrity)
