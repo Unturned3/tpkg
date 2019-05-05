@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# ############################################
+#
+# tpkg: a simple shell-script package manager
+# no automatic dependency resolution abilities
+#     (kind of similar to Slackware's)
+#
+#            Yusen Hu (c) 2018
+#
+# ############################################
+
+url="127.0.0.1:8080"	# repository URL
+srctype="net"			# can be either "net" or "dir" (unused for now)
+root="/home/richard/root"	# fake root directory. must be absolute path
+
+cd $root		# change directory to relative root
+
+if [ "$(pwd)" != "$root" ]; then
+	echo "failed to change directory to root prefix"
+	exit
+fi
+
+if [ "$1" = "install" ]; then
+
+	if [ "$2" = "" ]; then
+		echo "you need to specify a package to install"
+		exit
+	elif [ -d "usr/tdb/$2" ]; then
+		echo "$2 is already installed"
+		exit
+	fi
+
+	busybox wget -cq "$url/$2.tar"	# get package from url
+
+	if [ "$?" = "0" ]; then			# judge the return value of busybox
+		tar -xf "$2.tar"
+		rm "$2.tar"
+		echo "install ok"
+	else
+		echo "install failed"
+	fi
+	
+elif [ "$1" = "remove" ]; then
+
+	if [ ! -d "usr/tdb/$2" ]; then
+		echo "$2 is not installed"
+		exit
+	fi
+
+	rm $(cat usr/tdb/$2/rmf)	# remove files
+	rmdir $(cat usr/tdb/$2/rmd)	# remove directories
+	rm -r "usr/tdb/$2"
+
+	echo "$2 removed"
+
+elif [ "$1" = "" ]; then
+
+	echo "no actions specified"
+
+else
+
+	echo "unrecognized command"
+
+fi
