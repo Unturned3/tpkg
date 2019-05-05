@@ -48,9 +48,13 @@ elif [ "$1" = "remove" ]; then
 		exit
 	fi
 
-	rm $(cat usr/tdb/$2/rmf)	# remove files
-	rmdir $(cat usr/tdb/$2/rmd)	# remove directories
-	rm -r "usr/tdb/$2"
+	if [ -f "usr/tdb/$2/rmf" ]; then
+		rm $(cat usr/tdb/$2/rmf)	# remove files
+	fi
+	if [ -f "usr/tdb/$2/rmd" ]; then
+		rmdir $(cat usr/tdb/$2/rmd)	# remove directories
+	fi
+	rm -r "usr/tdb/$2"	# remove record inside tdb
 
 	echo "$2 removed"
 
